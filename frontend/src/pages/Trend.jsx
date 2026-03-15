@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
@@ -10,6 +10,10 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
 import Button from '@mui/material/Button'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import DownloadIcon from '@mui/icons-material/Download'
 import { useTheme } from '@mui/material/styles'
 import Divider from '@mui/material/Divider'
@@ -66,40 +70,49 @@ export default function Trend() {
 
       <Divider sx={{ my: 3 }} />
 
-      <TableContainer component={Paper} sx={{ mb: 2 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Data</TableCell>
-              <TableCell>Stazione</TableCell>
-              <TableCell>Valore (µg/m³)</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {sortedRows.map((row, i) => {
-              const isOver = threshold != null && row.value != null && row.value > threshold
-              const rowBg = isOver
-                ? theme.palette.mode === 'dark' ? '#7f1d1d' : '#ffcccc'
-                : undefined
-              return (
-                <TableRow key={i} sx={{ backgroundColor: rowBg }}>
-                  <TableCell>{row.date}</TableCell>
-                  <TableCell>{row.station}</TableCell>
-                  <TableCell>{row.value ?? '—'}</TableCell>
+      <Accordion disableGutters elevation={1}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography fontWeight={600}>Dati storici ({sortedRows.length} righe)</Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 0 }}>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Data</TableCell>
+                  <TableCell>Stazione</TableCell>
+                  <TableCell>Valore (µg/m³)</TableCell>
                 </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Button
-        variant="contained"
-        startIcon={<DownloadIcon />}
-        onClick={() => downloadCsv(data, pollutant, dateFrom, dateTo)}
-      >
-        Scarica CSV
-      </Button>
+              </TableHead>
+              <TableBody>
+                {sortedRows.map((row, i) => {
+                  const isOver = threshold != null && row.value != null && row.value > threshold
+                  const rowBg = isOver
+                    ? theme.palette.mode === 'dark' ? '#7f1d1d' : '#ffcccc'
+                    : undefined
+                  return (
+                    <TableRow key={i} sx={{ backgroundColor: rowBg }}>
+                      <TableCell>{row.date}</TableCell>
+                      <TableCell>{row.station}</TableCell>
+                      <TableCell>{row.value ?? '—'}</TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Box sx={{ p: 2 }}>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<DownloadIcon />}
+              onClick={() => downloadCsv(data, pollutant, dateFrom, dateTo)}
+            >
+              Scarica CSV
+            </Button>
+          </Box>
+        </AccordionDetails>
+      </Accordion>
     </Box>
   )
 }
