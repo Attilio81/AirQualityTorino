@@ -4,11 +4,10 @@ import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
-  ComposedChart, Bar, Line, BarChart, LineChart, ScatterChart, Scatter,
+  ComposedChart, Bar, Line, BarChart, LineChart,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 import { useTheme } from '@mui/material/styles'
-import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
@@ -26,39 +25,6 @@ import { useMeasurements } from '../hooks/useMeasurements'
 import { useWeather } from '../hooks/useWeather'
 import EmptyState from '../components/EmptyState'
 import ErrorBanner from '../components/ErrorBanner'
-
-const TODAY = new Date().toISOString().slice(0, 10)
-const ALL_HISTORY_FROM = '2020-01-01'
-
-// PM value → color using yellow→orange→red scale relative to threshold
-function pmColor(value, threshold) {
-  if (value == null || threshold == null) return '#999'
-  const ratio = Math.min(value / threshold, 1.5)
-  if (ratio < 0.5) return '#4caf50'
-  if (ratio < 1.0) return '#ff9800'
-  return '#f44336'
-}
-
-// Thresholds per pollutant (EU daily limit values)
-const PM_THRESHOLDS = {
-  PM10: 50,
-  PM2_5: 25,
-  NO2: 200,
-  default: 50,
-}
-
-function CustomScatterTooltip({ active, payload }) {
-  if (!active || !payload || !payload.length) return null
-  const d = payload[0]?.payload
-  if (!d) return null
-  return (
-    <Paper sx={{ p: 1, fontSize: 12 }}>
-      <div><strong>Data:</strong> {d.date}</div>
-      <div><strong>Meteo:</strong> {d.x != null ? d.x.toFixed(2) : '—'}</div>
-      <div><strong>PM:</strong> {d.pm != null ? d.pm.toFixed(1) : '—'} µg/m³</div>
-    </Paper>
-  )
-}
 
 function downloadCSV(rows, pollutant, dateFrom, dateTo) {
   const header = ['Data', `PM µg/m³`, 'T med °C', 'T min °C', 'T max °C', 'Pioggia mm', 'Vento m/s', 'Umidità %']
@@ -88,84 +54,35 @@ export default function Weather() {
   const theme = useTheme()
   const { pollutant, stations, dateFrom, dateTo } = useFilters()
 
-  const threshold = PM_THRESHOLDS[pollutant] ?? PM_THRESHOLDS.default
-
-  // ── Section 1 & 2 & 4: sidebar date filter ─────────────────────────────────
-  const {
-    data: weatherFiltered,
-    loading: wFilteredLoading,
-    error: wFilteredError,
-  } = useWeather({ dateFrom, dateTo })
-
-  const {
-    data: measurementsFiltered,
-    loading: mFilteredLoading,
-    error: mFilteredError,
-  } = useMeasurements({ pollutant, stations, dateFrom, dateTo })
-
-  // ── Section 3: all history ──────────────────────────────────────────────────
-  const {
-    data: weatherAll,
-    loading: wAllLoading,
-    error: wAllError,
-  } = useWeather({ dateFrom: ALL_HISTORY_FROM, dateTo: TODAY })
-
-  const {
-    data: measurementsAll,
-    loading: mAllLoading,
-    error: mAllError,
-  } = useMeasurements({ pollutant, stations, dateFrom: ALL_HISTORY_FROM, dateTo: TODAY })
+  const { data: weatherFiltered, loading: wLoading, error: wError } = useWeather({ dateFrom, dateTo })
+  const { data: measurementsFiltered, loading: mLoading, error: mError } = useMeasurements({ pollutant, stations, dateFrom, dateTo })
 
   const retry = useCallback(() => window.location.reload(), [])
 
-  const anyLoading = wFilteredLoading || mFilteredLoading || wAllLoading || mAllLoading
-  const anyError   = wFilteredError  || mFilteredError  || wAllError  || mAllError
-
-  // ── Daily PM avg (filtered) ─────────────────────────────────────────────────
-  const dailyPmFiltered = useMemo(() => {
+  // Daily PM avg
+  const dailyPm = useMemo(() => {
     const byDate = {}
     for (const row of measurementsFiltered) {
       if (row.value == null) continue
       if (!byDate[row.date]) byDate[row.date] = []
       byDate[row.date].push(row.value)
     }
-    const result = {}
-    for (const [date, vals] of Object.entries(byDate)) {
-      result[date] = vals.reduce((a, b) => a + b, 0) / vals.length
-    }
-    return result
+    return Object.fromEntries(
+      Object.entries(byDate).map(([date, vals]) => [
+        date,
+        vals.reduce((a, b) => a + b, 0) / vals.length,
+      ])
+    )
   }, [measurementsFiltered])
 
-  // ── Daily PM avg (all history) ──────────────────────────────────────────────
-  const dailyPmAll = useMemo(() => {
-    const byDate = {}
-    for (const row of measurementsAll) {
-      if (row.value == null) continue
-      if (!byDate[row.date]) byDate[row.date] = []
-      byDate[row.date].push(row.value)
-    }
-    const result = {}
-    for (const [date, vals] of Object.entries(byDate)) {
-      result[date] = vals.reduce((a, b) => a + b, 0) / vals.length
-    }
-    return result
-  }, [measurementsAll])
-
-  // ── Joined filtered (Sections 2 & 4) ───────────────────────────────────────
-  const joinedFiltered = useMemo(() =>
+  // Joined PM + meteo
+  const joined = useMemo(() =>
     weatherFiltered
-      .filter(w => dailyPmFiltered[w.date] != null)
-      .map(w => ({ ...w, pm: dailyPmFiltered[w.date] }))
-  , [weatherFiltered, dailyPmFiltered])
+      .filter(w => dailyPm[w.date] != null)
+      .map(w => ({ ...w, pm: dailyPm[w.date] }))
+  , [weatherFiltered, dailyPm])
 
-  // ── Joined all (Section 3) ──────────────────────────────────────────────────
-  const joinedAll = useMemo(() =>
-    weatherAll
-      .filter(w => dailyPmAll[w.date] != null)
-      .map(w => ({ ...w, pm: dailyPmAll[w.date] }))
-  , [weatherAll, dailyPmAll])
-
-  if (anyLoading) {
+  if (wLoading || mLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
         <CircularProgress />
@@ -173,13 +90,12 @@ export default function Weather() {
     )
   }
 
-  if (anyError) {
+  if (wError || mError) {
     return <ErrorBanner message="Errore nel caricamento dei dati meteo." onRetry={retry} />
   }
 
-  // ── Recharts common props ───────────────────────────────────────────────────
-  const axisStyle  = { fill: theme.palette.text.secondary, fontSize: 11 }
-  const gridColor  = theme.palette.divider
+  const axisStyle = { fill: theme.palette.text.secondary, fontSize: 11 }
+  const gridColor = theme.palette.divider
 
   return (
     <Box>
@@ -256,53 +172,21 @@ export default function Weather() {
         Serie temporale: {pollutant} e variabili meteo
       </Typography>
 
-      {joinedFiltered.length === 0 ? (
+      {joined.length === 0 ? (
         <EmptyState message="Nessun dato combinato PM + meteo per il periodo selezionato" />
       ) : (
         <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={joinedFiltered} margin={{ top: 4, right: 40, left: 0, bottom: 4 }}>
+          <ComposedChart data={joined} margin={{ top: 4, right: 40, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} />
             <YAxis yAxisId="left" tick={axisStyle} unit=" µg/m³" width={60} />
             <YAxis yAxisId="right" orientation="right" tick={axisStyle} width={50} />
             <Tooltip formatter={(v, name) => [v != null ? v.toFixed(1) : '—', name]} />
             <Legend />
-            <Bar
-              yAxisId="left"
-              dataKey="pm"
-              name={`${pollutant} µg/m³`}
-              fill="steelblue"
-              opacity={0.75}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="tmed"
-              name="T med °C"
-              stroke="tomato"
-              strokeWidth={2}
-              dot={false}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="v_med"
-              name="V med m/s"
-              stroke="seagreen"
-              strokeWidth={1.5}
-              strokeDasharray="5 3"
-              dot={false}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="prec"
-              name="Pioggia mm"
-              stroke="cornflowerblue"
-              strokeWidth={1.5}
-              strokeDasharray="4 4"
-              dot={false}
-            />
+            <Bar yAxisId="left" dataKey="pm" name={`${pollutant} µg/m³`} fill="steelblue" opacity={0.75} />
+            <Line yAxisId="right" type="monotone" dataKey="tmed" name="T med °C" stroke="tomato" strokeWidth={2} dot={false} />
+            <Line yAxisId="right" type="monotone" dataKey="v_med" name="V med m/s" stroke="seagreen" strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
+            <Line yAxisId="right" type="monotone" dataKey="prec" name="Pioggia mm" stroke="cornflowerblue" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
       )}
@@ -310,76 +194,14 @@ export default function Weather() {
       <Divider sx={{ my: 3 }} />
 
       {/* ══════════════════════════════════════════════════════════════
-          SECTION 3: Scatter plots PM vs meteo (all history)
+          SECTION 3: Data table + CSV download
       ══════════════════════════════════════════════════════════════ */}
-      <Typography variant="h6" gutterBottom>
-        Correlazione {pollutant} vs. meteo (storico completo)
-      </Typography>
-
-      {joinedAll.length === 0 ? (
-        <EmptyState message="Nessun dato storico combinato PM + meteo disponibile" />
-      ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {[
-            { key: 'tmed',   label: 'Temperatura media (°C)' },
-            { key: 'v_med',  label: 'Vento medio (m/s)' },
-            { key: 'ur_med', label: 'Umidità relativa (%)' },
-            { key: 'prec',   label: 'Precipitazioni (mm)' },
-          ].map(({ key, label }) => {
-            const points = joinedAll
-              .filter(r => r[key] != null && r.pm != null)
-              .map(r => ({ x: r[key], pm: r.pm, date: r.date }))
-
-            return (
-              <Box key={key}>
-                <Typography variant="subtitle2" gutterBottom>
-                  {pollutant} vs. {label}
-                </Typography>
-                {points.length === 0 ? (
-                  <EmptyState message={`Nessun dato per ${label}`} />
-                ) : (
-                  <ResponsiveContainer width="100%" height={260}>
-                    <ScatterChart margin={{ top: 4, right: 16, left: 0, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                      <XAxis dataKey="x" name={label} tick={axisStyle} label={{ value: label, position: 'insideBottom', offset: -10, style: { fontSize: 11 } }} />
-                      <YAxis dataKey="pm" name={`${pollutant} µg/m³`} tick={axisStyle} unit=" µg" width={50} />
-                      <Tooltip content={<CustomScatterTooltip />} />
-                      <Scatter
-                        data={points}
-                        shape={(props) => {
-                          const { cx, cy, payload } = props
-                          return (
-                            <circle
-                              cx={cx}
-                              cy={cy}
-                              r={4}
-                              fill={pmColor(payload.pm, threshold)}
-                              fillOpacity={0.75}
-                              stroke="none"
-                            />
-                          )
-                        }}
-                      />
-                    </ScatterChart>
-                  </ResponsiveContainer>
-                )}
-              </Box>
-            )
-          })}
-        </Box>
-      )}
-
-      <Divider sx={{ my: 3 }} />
-
-      {/* ══════════════════════════════════════════════════════════════
-          SECTION 4: Data table + CSV download
-      ══════════════════════════════════════════════════════════════ */}
-      {joinedFiltered.length === 0 ? (
+      {joined.length === 0 ? (
         <EmptyState message="Nessun dato da mostrare per il periodo selezionato" />
       ) : (
         <Accordion disableGutters elevation={1}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography fontWeight={600}>Dati PM + meteo nel periodo selezionato ({joinedFiltered.length} righe)</Typography>
+            <Typography fontWeight={600}>Dati PM + meteo nel periodo selezionato ({joined.length} righe)</Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ p: 0 }}>
             <TableContainer sx={{ maxHeight: 400 }}>
@@ -397,7 +219,7 @@ export default function Weather() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {joinedFiltered.map((row) => (
+                  {joined.map((row) => (
                     <TableRow key={row.date} hover>
                       <TableCell>{row.date}</TableCell>
                       <TableCell align="right">{row.pm != null ? row.pm.toFixed(1) : '—'}</TableCell>
@@ -416,7 +238,7 @@ export default function Weather() {
               <Button
                 variant="outlined"
                 size="small"
-                onClick={() => downloadCSV(joinedFiltered, pollutant, dateFrom, dateTo)}
+                onClick={() => downloadCSV(joined, pollutant, dateFrom, dateTo)}
               >
                 Scarica CSV
               </Button>
