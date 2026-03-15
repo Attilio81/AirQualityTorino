@@ -35,7 +35,7 @@ export default function App() {
         <FilterProvider>
           <BrowserRouter>
             <AppBar />
-            <Box component="main" sx={{ p: 3, mt: 8 }}>
+            <Box component="main" sx={{ p: { xs: 1.5, sm: 3 }, mt: 8, pb: { xs: 9, sm: 3 } }}>
               <FilterBar />
               <Routes>
                 <Route path="/" element={<Navigate to="/trend" replace />} />
