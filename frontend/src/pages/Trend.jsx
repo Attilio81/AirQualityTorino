@@ -22,6 +22,7 @@ import { useMeasurements } from '../hooks/useMeasurements'
 import { getThreshold } from '../lib/thresholds'
 import KpiCards from '../components/KpiCards'
 import TimeSeriesChart from '../components/charts/TimeSeriesChart'
+import CalendarHeatmap from '../components/CalendarHeatmap'
 import EmptyState from '../components/EmptyState'
 import ErrorBanner from '../components/ErrorBanner'
 
@@ -67,6 +68,7 @@ export default function Trend() {
       <Typography variant="h5" gutterBottom>Andamento {pollutant}</Typography>
       <KpiCards data={data} pollutant={pollutant} />
       <TimeSeriesChart data={data} pollutant={pollutant} threshold={threshold} />
+      <CalendarHeatmap measurementsData={data} />
 
       <Divider sx={{ my: 3 }} />
 
