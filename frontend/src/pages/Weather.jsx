@@ -1,4 +1,8 @@
 import { useMemo, useCallback } from 'react'
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
   ComposedChart, Bar, Line, BarChart, LineChart, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -370,54 +374,55 @@ export default function Weather() {
       {/* ══════════════════════════════════════════════════════════════
           SECTION 4: Data table + CSV download
       ══════════════════════════════════════════════════════════════ */}
-      <Typography variant="h6" gutterBottom>
-        Dati PM + meteo nel periodo selezionato
-      </Typography>
-
       {joinedFiltered.length === 0 ? (
         <EmptyState message="Nessun dato da mostrare per il periodo selezionato" />
       ) : (
-        <>
-          <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Data</TableCell>
-                  <TableCell align="right">PM µg/m³</TableCell>
-                  <TableCell align="right">T med °C</TableCell>
-                  <TableCell align="right">T min °C</TableCell>
-                  <TableCell align="right">T max °C</TableCell>
-                  <TableCell align="right">Pioggia mm</TableCell>
-                  <TableCell align="right">Vento m/s</TableCell>
-                  <TableCell align="right">Umidità %</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {joinedFiltered.map((row) => (
-                  <TableRow key={row.date} hover>
-                    <TableCell>{row.date}</TableCell>
-                    <TableCell align="right">{row.pm != null ? row.pm.toFixed(1) : '—'}</TableCell>
-                    <TableCell align="right">{row.tmed != null ? row.tmed.toFixed(1) : '—'}</TableCell>
-                    <TableCell align="right">{row.tmin != null ? row.tmin.toFixed(1) : '—'}</TableCell>
-                    <TableCell align="right">{row.tmax != null ? row.tmax.toFixed(1) : '—'}</TableCell>
-                    <TableCell align="right">{row.prec != null ? row.prec.toFixed(1) : '—'}</TableCell>
-                    <TableCell align="right">{row.v_med != null ? row.v_med.toFixed(1) : '—'}</TableCell>
-                    <TableCell align="right">{row.ur_med != null ? row.ur_med.toFixed(1) : '—'}</TableCell>
+        <Accordion disableGutters elevation={1}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography fontWeight={600}>Dati PM + meteo nel periodo selezionato ({joinedFiltered.length} righe)</Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0 }}>
+            <TableContainer sx={{ maxHeight: 400 }}>
+              <Table stickyHeader size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Data</TableCell>
+                    <TableCell align="right">PM µg/m³</TableCell>
+                    <TableCell align="right">T med °C</TableCell>
+                    <TableCell align="right">T min °C</TableCell>
+                    <TableCell align="right">T max °C</TableCell>
+                    <TableCell align="right">Pioggia mm</TableCell>
+                    <TableCell align="right">Vento m/s</TableCell>
+                    <TableCell align="right">Umidità %</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <Box sx={{ mt: 2 }}>
-            <Button
-              variant="outlined"
-              onClick={() => downloadCSV(joinedFiltered, pollutant, dateFrom, dateTo)}
-            >
-              Scarica CSV
-            </Button>
-          </Box>
-        </>
+                </TableHead>
+                <TableBody>
+                  {joinedFiltered.map((row) => (
+                    <TableRow key={row.date} hover>
+                      <TableCell>{row.date}</TableCell>
+                      <TableCell align="right">{row.pm != null ? row.pm.toFixed(1) : '—'}</TableCell>
+                      <TableCell align="right">{row.tmed != null ? row.tmed.toFixed(1) : '—'}</TableCell>
+                      <TableCell align="right">{row.tmin != null ? row.tmin.toFixed(1) : '—'}</TableCell>
+                      <TableCell align="right">{row.tmax != null ? row.tmax.toFixed(1) : '—'}</TableCell>
+                      <TableCell align="right">{row.prec != null ? row.prec.toFixed(1) : '—'}</TableCell>
+                      <TableCell align="right">{row.v_med != null ? row.v_med.toFixed(1) : '—'}</TableCell>
+                      <TableCell align="right">{row.ur_med != null ? row.ur_med.toFixed(1) : '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Box sx={{ p: 2 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => downloadCSV(joinedFiltered, pollutant, dateFrom, dateTo)}
+              >
+                Scarica CSV
+              </Button>
+            </Box>
+          </AccordionDetails>
+        </Accordion>
       )}
     </Box>
   )
