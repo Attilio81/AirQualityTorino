@@ -4,11 +4,13 @@ import {
   Tooltip, Legend, ReferenceLine, ResponsiveContainer
 } from 'recharts'
 import { useTheme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 const COLORS = ['#2196f3','#4caf50','#ff9800','#e91e63','#9c27b0','#00bcd4']
 
 export default function TimeSeriesChart({ data, pollutant, threshold }) {
   const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const { stations, chartData } = useMemo(() => {
     const stationSet = [...new Set(data.map(r => r.station))]
@@ -24,11 +26,11 @@ export default function TimeSeriesChart({ data, pollutant, threshold }) {
   }, [data])
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={isMobile ? 240 : 400}>
       <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-        <YAxis unit=" µg/m³" />
+        <XAxis dataKey="date" tick={{ fontSize: isMobile ? 10 : 12 }} />
+        <YAxis unit=" µg/m³" tick={{ fontSize: isMobile ? 10 : 12 }} width={isMobile ? 60 : 80} />
         <Tooltip />
         <Legend />
         {threshold != null && (

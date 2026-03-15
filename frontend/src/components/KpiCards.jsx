@@ -32,37 +32,37 @@ export default function KpiCards({ data, pollutant }) {
 
   return (
     <Grid container spacing={2} sx={{ mb: 2 }}>
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={6}>
         <Card>
-          <CardContent>
+          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
             <Typography color="text.secondary" variant="body2">Stazioni selezionate</Typography>
-            <Typography variant="h4">{stationCount}</Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>{stationCount}</Typography>
           </CardContent>
         </Card>
       </Grid>
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={6}>
         <Card>
-          <CardContent>
+          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
             <Typography color="text.secondary" variant="body2">Giorni coperti</Typography>
-            <Typography variant="h4">{dayCount}</Typography>
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>{dayCount}</Typography>
           </CardContent>
         </Card>
       </Grid>
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={6}>
         <Card>
-          <CardContent>
+          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
             <Typography color="text.secondary" variant="body2">Media {pollutant}</Typography>
-            <Typography variant="h4">
+            <Typography variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {overallAvg != null ? overallAvg.toFixed(1) : '—'} µg/m³
             </Typography>
           </CardContent>
         </Card>
       </Grid>
-      <Grid item xs={12} sm={6}>
+      <Grid item xs={6}>
         <Card>
-          <CardContent>
+          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
             <Typography color="text.secondary" variant="body2">Giorni oltre il limite</Typography>
-            <Typography variant="h4" color={daysOver > 0 ? 'error' : 'inherit'}>
+            <Typography variant="h4" color={daysOver > 0 ? 'error' : 'inherit'} sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {daysOver}
             </Typography>
           </CardContent>
