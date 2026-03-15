@@ -1,0 +1,8 @@
+# downloader.py — usa solo la stdlib Python 3.x
+
+# dashboard.py
+streamlit>=1.35.0
+pandas>=2.0.0
+plotly>=5.0.0
+supabase>=2.0.0,<2.22.0
+python-dotenv>=1.0.0
