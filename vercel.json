@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "redirects": [{ "source": "/favicon.ico", "destination": "/favicon.svg", "permanent": true }],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
