@@ -23,14 +23,23 @@ const WEATHER_VARS = [
   { key: 'ur_med', label: 'Umidità relativa (%)',     color: '#06b6d4', unit: '%'   },
 ]
 
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active, payload, label, isDark }) {
   if (!active || !payload?.length) return null
   return (
-    <Box sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', p: 1.5, borderRadius: 1, fontSize: 13 }}>
-      <Typography variant="body2" fontWeight="bold" mb={0.5}>{label}</Typography>
+    <Box sx={{
+      bgcolor: isDark ? '#0d1b2a' : '#fff',
+      border: '1px solid',
+      borderColor: isDark ? '#1e3a5f' : '#bae6fd',
+      p: 1.5,
+      borderRadius: 2,
+      fontSize: 13,
+      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    }}>
+      <Typography variant="body2" fontWeight={700} mb={0.5} sx={{ fontFamily: "'DM Mono', monospace" }}>{label}</Typography>
       {payload.map(p => (
-        <div key={p.dataKey} style={{ color: p.color }}>
-          {p.name}: {p.value != null ? p.value.toFixed(1) : '—'} {p.unit}
+        <div key={p.dataKey} style={{ color: p.color, fontWeight: 500 }}>
+          {p.name}: {p.value != null ? p.value.toFixed(1) : '—'}{p.unit}
         </div>
       ))}
     </Box>
@@ -88,7 +97,10 @@ export default function Correlation() {
   if (error) return <ErrorBanner message="Errore nel caricamento dei dati." />
   if (!chartData.length) return <EmptyState />
 
-  const pmColor = theme.palette.mode === 'dark' ? '#90caf9' : '#1976d2'
+  const isDark = theme.palette.mode === 'dark'
+  const pmColor = isDark ? '#38bdf8' : '#0284c7'
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const axisStyle = { fontSize: 11, fontFamily: "'DM Mono', monospace", fill: theme.palette.text.secondary }
 
   return (
     <Box>
@@ -106,42 +118,60 @@ export default function Correlation() {
         sx={{ mb: 3, flexWrap: 'wrap', gap: 0.5 }}
       >
         {WEATHER_VARS.map(v => (
-          <ToggleButton key={v.key} value={v.key}>{v.label.split(' (')[0]}</ToggleButton>
+          <ToggleButton key={v.key} value={v.key} sx={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {v.label.split(' (')[0]}
+          </ToggleButton>
         ))}
       </ToggleButtonGroup>
 
       <ResponsiveContainer width="100%" height={400}>
         <ComposedChart data={chartData} margin={{ top: 8, right: 40, left: 0, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 11 }}
+            tick={axisStyle}
             tickFormatter={d => d.slice(5)}
             interval="preserveStartEnd"
+            axisLine={{ stroke: theme.palette.divider }}
+            tickLine={false}
           />
           <YAxis
             yAxisId="pm"
             orientation="left"
-            label={{ value: `${pollutant} (µg/m³)`, angle: -90, position: 'insideLeft', offset: 10, style: { fontSize: 11 } }}
+            tick={axisStyle}
+            axisLine={false}
+            tickLine={false}
+            label={{ value: `${pollutant} (µg/m³)`, angle: -90, position: 'insideLeft', offset: 10, style: { fontSize: 11, fontFamily: "'DM Mono', monospace" } }}
           />
           <YAxis
             yAxisId="wx"
             orientation="right"
-            label={{ value: selectedVar.unit, angle: 90, position: 'insideRight', offset: 10, style: { fontSize: 11 } }}
+            tick={axisStyle}
+            axisLine={false}
+            tickLine={false}
+            label={{ value: selectedVar.unit, angle: 90, position: 'insideRight', offset: 10, style: { fontSize: 11, fontFamily: "'DM Mono', monospace" } }}
           />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
+          <Tooltip content={<CustomTooltip isDark={isDark} />} />
+          <Legend wrapperStyle={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12 }} />
           {threshold && (
-            <ReferenceLine yAxisId="pm" y={threshold} stroke="#ef4444" strokeDasharray="4 4" label={{ value: `Limite ${threshold}`, fill: '#ef4444', fontSize: 11 }} />
+            <ReferenceLine
+              yAxisId="pm"
+              y={threshold}
+              stroke="#ef4444"
+              strokeDasharray="4 4"
+              strokeWidth={1.5}
+              label={{ value: `Limite ${threshold}`, fill: '#ef4444', fontSize: 11, fontFamily: "'DM Mono', monospace" }}
+            />
           )}
           <Bar
             yAxisId="pm"
             dataKey="pm"
             name={pollutant}
             fill={pmColor}
-            opacity={0.7}
+            opacity={0.65}
             unit=" µg/m³"
             maxBarSize={20}
+            radius={[3, 3, 0, 0]}
           />
           <Line
             yAxisId="wx"
@@ -149,9 +179,10 @@ export default function Correlation() {
             name={selectedVar.label.split(' (')[0]}
             stroke={selectedVar.color}
             dot={false}
-            strokeWidth={2}
+            strokeWidth={2.5}
             unit={` ${selectedVar.unit}`}
             connectNulls
+            activeDot={{ r: 4, strokeWidth: 0 }}
           />
         </ComposedChart>
       </ResponsiveContainer>

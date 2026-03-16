@@ -3,6 +3,11 @@ import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
+import AnalyticsIcon from '@mui/icons-material/Analytics'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { getThreshold } from '../lib/thresholds'
 
 function average(arr) {
@@ -10,16 +15,46 @@ function average(arr) {
   return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null
 }
 
+const CARDS = [
+  {
+    label: 'Stazioni selezionate',
+    color: '#0284c7',
+    Icon: LocationOnIcon,
+    getValue: ({ stationCount }) => stationCount,
+    format: v => v,
+  },
+  {
+    label: 'Giorni coperti',
+    color: '#0369a1',
+    Icon: CalendarTodayIcon,
+    getValue: ({ dayCount }) => dayCount,
+    format: v => v,
+  },
+  {
+    label: 'Media PM',
+    color: '#059669',
+    Icon: AnalyticsIcon,
+    getValue: ({ overallAvg, pollutant }) => ({ avg: overallAvg, pollutant }),
+    format: v => v.avg != null ? `${v.avg.toFixed(1)} µg/m³` : '—',
+    labelDynamic: ({ pollutant }) => `Media ${pollutant}`,
+  },
+  {
+    label: 'Giorni oltre il limite',
+    color: '#ef4444',
+    Icon: WarningAmberIcon,
+    getValue: ({ daysOver }) => daysOver,
+    format: v => v,
+    isDanger: true,
+  },
+]
+
 export default function KpiCards({ data, pollutant }) {
   const threshold = getThreshold(pollutant)
 
   const stationCount = new Set(data.map(r => r.station)).size
-
   const dayCount = new Set(data.map(r => r.date)).size
-
   const overallAvg = average(data.map(r => r.value))
 
-  // Group by date, compute daily avg across stations, count days over threshold
   const byDate = {}
   for (const row of data) {
     if (!byDate[row.date]) byDate[row.date] = []
@@ -30,44 +65,58 @@ export default function KpiCards({ data, pollutant }) {
     return threshold != null && avg != null && avg > threshold
   }).length
 
+  const context = { stationCount, dayCount, overallAvg, pollutant, daysOver }
+
   return (
     <Grid container spacing={2} sx={{ mb: 2 }}>
-      <Grid item xs={6}>
-        <Card>
-          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
-            <Typography color="text.secondary" variant="body2">Stazioni selezionate</Typography>
-            <Typography variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>{stationCount}</Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={6}>
-        <Card>
-          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
-            <Typography color="text.secondary" variant="body2">Giorni coperti</Typography>
-            <Typography variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>{dayCount}</Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={6}>
-        <Card>
-          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
-            <Typography color="text.secondary" variant="body2">Media {pollutant}</Typography>
-            <Typography variant="h4" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
-              {overallAvg != null ? overallAvg.toFixed(1) : '—'} µg/m³
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={6}>
-        <Card>
-          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
-            <Typography color="text.secondary" variant="body2">Giorni oltre il limite</Typography>
-            <Typography variant="h4" color={daysOver > 0 ? 'error' : 'inherit'} sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
-              {daysOver}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
+      {CARDS.map(({ label, color, Icon, getValue, format, labelDynamic, isDanger }) => {
+        const raw = getValue(context)
+        const displayValue = format(raw)
+        const accentColor = isDanger && daysOver > 0 ? '#ef4444' : color
+        const cardLabel = labelDynamic ? labelDynamic(context) : label
+
+        return (
+          <Grid item xs={6} key={label}>
+            <Card
+              sx={{
+                borderLeft: '4px solid',
+                borderLeftColor: accentColor,
+                height: '100%',
+              }}
+            >
+              <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box>
+                    <Typography color="text.secondary" variant="body2" sx={{ mb: 0.5 }}>
+                      {cardLabel}
+                    </Typography>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontSize: { xs: '1.6rem', sm: '2rem' },
+                        fontFamily: "'DM Mono', ui-monospace, monospace",
+                        fontWeight: 500,
+                        color: isDanger && daysOver > 0 ? 'error.main' : 'text.primary',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {displayValue}
+                    </Typography>
+                  </Box>
+                  <Icon
+                    sx={{
+                      fontSize: { xs: 28, sm: 36 },
+                      color: accentColor,
+                      opacity: 0.25,
+                      mt: 0.5,
+                    }}
+                  />
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )
+      })}
     </Grid>
   )
 }

@@ -105,6 +105,7 @@ def _upsert_stations(api_records: list, pollutant: str, supabase: "Client") -> N
     One row per station; pollutants[] merged with existing values.
     Coordinates come from lat/lon/nome_stazione fields in the Arpa JSON.
     Falls back to denominazione_stazione when nome_stazione is absent.
+    Only stations matching CITY_FILTER are included.
     """
     seen: dict = {}
     for r in api_records:
@@ -112,6 +113,8 @@ def _upsert_stations(api_records: list, pollutant: str, supabase: "Client") -> N
         lat  = r.get("lat")
         lon  = r.get("lon")
         if not name or lat is None or lon is None:
+            continue
+        if not r.get("denominazione_stazione", "").startswith(CITY_FILTER):
             continue
         if name not in seen:
             seen[name] = {"name": name, "lat": lat, "lon": lon, "pollutants": [pollutant]}

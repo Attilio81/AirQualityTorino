@@ -94,8 +94,16 @@ export default function Weather() {
     return <ErrorBanner message="Errore nel caricamento dei dati meteo." onRetry={retry} />
   }
 
-  const axisStyle = { fill: theme.palette.text.secondary, fontSize: 11 }
-  const gridColor = theme.palette.divider
+  const isDark = theme.palette.mode === 'dark'
+  const axisStyle = { fill: theme.palette.text.secondary, fontSize: 11, fontFamily: "'DM Mono', monospace" }
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+  const tooltipStyle = {
+    background: isDark ? '#0d1b2a' : '#fff',
+    border: `1px solid ${isDark ? '#1e3a5f' : '#bae6fd'}`,
+    borderRadius: 8,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 13,
+  }
 
   return (
     <Box>
@@ -120,13 +128,13 @@ export default function Weather() {
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={weatherFiltered} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} />
-                <YAxis tick={axisStyle} unit="°C" width={45} />
-                <Tooltip formatter={(v, name) => [`${v?.toFixed(1)} °C`, name]} />
-                <Legend />
-                <Line type="monotone" dataKey="tmin" name="T min" stroke="#2196f3" dot={false} strokeWidth={1.5} />
-                <Line type="monotone" dataKey="tmax" name="T max" stroke="#f44336" dot={false} strokeWidth={1.5} />
-                <Line type="monotone" dataKey="tmed" name="T med" stroke="#ff9800" dot={false} strokeWidth={2} />
+                <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} axisLine={{ stroke: theme.palette.divider }} tickLine={false} />
+                <YAxis tick={axisStyle} unit="°C" width={45} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v, name) => [`${v?.toFixed(1)} °C`, name]} />
+                <Legend wrapperStyle={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12 }} />
+                <Line type="monotone" dataKey="tmin" name="T min" stroke="#38bdf8" dot={false} strokeWidth={1.5} />
+                <Line type="monotone" dataKey="tmax" name="T max" stroke="#f43f5e" dot={false} strokeWidth={1.5} />
+                <Line type="monotone" dataKey="tmed" name="T med" stroke="#f59e0b" dot={false} strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </Box>
@@ -137,10 +145,10 @@ export default function Weather() {
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={weatherFiltered} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} />
-                <YAxis tick={axisStyle} unit="mm" width={45} />
-                <Tooltip formatter={(v) => [`${v?.toFixed(1)} mm`, 'Prec.']} />
-                <Bar dataKey="prec" name="Prec." fill="#5b9bd5" />
+                <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} axisLine={{ stroke: theme.palette.divider }} tickLine={false} />
+                <YAxis tick={axisStyle} unit="mm" width={45} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v?.toFixed(1)} mm`, 'Prec.']} />
+                <Bar dataKey="prec" name="Prec." fill="#0ea5e9" opacity={0.8} radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Box>
@@ -151,12 +159,12 @@ export default function Weather() {
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={weatherFiltered} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} />
-                <YAxis tick={axisStyle} unit=" m/s" width={50} />
-                <Tooltip formatter={(v, name) => [`${v?.toFixed(1)} m/s`, name]} />
-                <Legend />
-                <Line type="monotone" dataKey="v_med" name="V med" stroke="#4caf50" dot={false} strokeWidth={2} />
-                <Line type="monotone" dataKey="v_max" name="V max" stroke="#9e9e9e" dot={false} strokeWidth={1.5} strokeDasharray="5 3" />
+                <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} axisLine={{ stroke: theme.palette.divider }} tickLine={false} />
+                <YAxis tick={axisStyle} unit=" m/s" width={50} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v, name) => [`${v?.toFixed(1)} m/s`, name]} />
+                <Legend wrapperStyle={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12 }} />
+                <Line type="monotone" dataKey="v_med" name="V med" stroke="#10b981" dot={false} strokeWidth={2} />
+                <Line type="monotone" dataKey="v_max" name="V max" stroke="#6b7280" dot={false} strokeWidth={1.5} strokeDasharray="5 3" />
               </LineChart>
             </ResponsiveContainer>
           </Box>
@@ -178,15 +186,15 @@ export default function Weather() {
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={joined} margin={{ top: 4, right: 40, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-            <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} />
-            <YAxis yAxisId="left" tick={axisStyle} unit=" µg/m³" width={60} />
-            <YAxis yAxisId="right" orientation="right" tick={axisStyle} width={50} />
-            <Tooltip formatter={(v, name) => [v != null ? v.toFixed(1) : '—', name]} />
-            <Legend />
-            <Bar yAxisId="left" dataKey="pm" name={`${pollutant} µg/m³`} fill="steelblue" opacity={0.75} />
-            <Line yAxisId="right" type="monotone" dataKey="tmed" name="T med °C" stroke="tomato" strokeWidth={2} dot={false} />
-            <Line yAxisId="right" type="monotone" dataKey="v_med" name="V med m/s" stroke="seagreen" strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
-            <Line yAxisId="right" type="monotone" dataKey="prec" name="Pioggia mm" stroke="cornflowerblue" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
+            <XAxis dataKey="date" tick={axisStyle} tickFormatter={d => d.slice(5)} axisLine={{ stroke: theme.palette.divider }} tickLine={false} />
+            <YAxis yAxisId="left" tick={axisStyle} unit=" µg/m³" width={60} axisLine={false} tickLine={false} />
+            <YAxis yAxisId="right" orientation="right" tick={axisStyle} width={50} axisLine={false} tickLine={false} />
+            <Tooltip contentStyle={tooltipStyle} formatter={(v, name) => [v != null ? v.toFixed(1) : '—', name]} />
+            <Legend wrapperStyle={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 12 }} />
+            <Bar yAxisId="left" dataKey="pm" name={`${pollutant} µg/m³`} fill="#0284c7" opacity={0.65} radius={[3, 3, 0, 0]} />
+            <Line yAxisId="right" type="monotone" dataKey="tmed" name="T med °C" stroke="#f59e0b" strokeWidth={2} dot={false} />
+            <Line yAxisId="right" type="monotone" dataKey="v_med" name="V med m/s" stroke="#10b981" strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
+            <Line yAxisId="right" type="monotone" dataKey="prec" name="Pioggia mm" stroke="#38bdf8" strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
       )}

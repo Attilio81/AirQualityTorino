@@ -4,10 +4,11 @@ import 'leaflet/dist/leaflet.css'
 import { getThreshold } from '../lib/thresholds'
 
 function markerColor(avg, threshold) {
-  if (threshold == null || avg == null) return 'grey'
-  if (avg > threshold) return '#f44336'         // red
-  if (avg > threshold * 0.5) return '#ff9800'   // yellow/orange
-  return '#4caf50'                               // green
+  if (threshold == null || avg == null) return '#6b7280'
+  if (avg > threshold)          return '#ef4444'  // red — oltre soglia
+  if (avg > threshold * 0.75)   return '#f59e0b'  // amber — alto
+  if (avg > threshold * 0.5)    return '#eab308'  // yellow — moderato
+  return '#10b981'                                 // green — buono
 }
 
 export default function StationMap({ stations, measurementsByStation, pollutant }) {
@@ -32,14 +33,15 @@ export default function StationMap({ stations, measurementsByStation, pollutant 
           <CircleMarker
             key={station.name}
             center={[station.lat, station.lon]}
-            radius={10}
+            radius={11}
             fillColor={color}
-            color={color}
-            fillOpacity={0.8}
+            color="#fff"
+            weight={2}
+            fillOpacity={0.85}
           >
             <Popup>
-              <strong>{station.name}</strong><br />
-              {pollutant}: {popupText}
+              <strong style={{ fontSize: 14 }}>{station.name}</strong><br />
+              <span style={{ color, fontWeight: 600 }}>{pollutant}: {popupText}</span>
             </Popup>
           </CircleMarker>
         )

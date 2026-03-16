@@ -10,6 +10,7 @@ import Footer from './components/Footer'
 import Trend from './pages/Trend'
 import Weather from './pages/Weather'
 import Correlation from './pages/Correlation'
+import Stazioni from './pages/Stazioni'
 
 export const ColorModeContext = createContext({ toggle: () => {} })
 
@@ -26,7 +27,61 @@ export default function App() {
     })
   }), [])
 
-  const theme = useMemo(() => createTheme({ palette: { mode } }), [mode])
+  const theme = useMemo(() => createTheme({
+    palette: {
+      mode,
+      primary: {
+        main: mode === 'dark' ? '#38bdf8' : '#0284c7',
+        light: '#7dd3fc',
+        dark: '#0369a1',
+        contrastText: '#fff',
+      },
+      secondary: {
+        main: '#06b6d4',
+      },
+      error: {
+        main: '#ef4444',
+      },
+      warning: {
+        main: '#f59e0b',
+      },
+      success: {
+        main: '#10b981',
+      },
+      ...(mode === 'dark' ? {
+        background: {
+          default: '#070d18',
+          paper: '#0d1b2a',
+        },
+        divider: '#1e3a5f',
+      } : {
+        background: {
+          default: '#f0f9ff',
+          paper: '#ffffff',
+        },
+        divider: '#bae6fd',
+      }),
+    },
+    typography: {
+      fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+      h4: { fontWeight: 700 },
+      h5: { fontWeight: 700 },
+      h6: { fontWeight: 700 },
+    },
+    shape: { borderRadius: 10 },
+    components: {
+      MuiCard: {
+        styleOverrides: {
+          root: { backgroundImage: 'none' },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: { backgroundImage: 'none' },
+        },
+      },
+    },
+  }), [mode])
 
   return (
     <ColorModeContext.Provider value={colorMode}>
@@ -42,6 +97,7 @@ export default function App() {
                 <Route path="/trend" element={<Trend />} />
                 <Route path="/weather" element={<Weather />} />
                 <Route path="/correlation" element={<Correlation />} />
+                <Route path="/stazioni" element={<Stazioni />} />
               </Routes>
               <Footer />
             </Box>

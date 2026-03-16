@@ -99,9 +99,9 @@ export default function CalendarHeatmap({ measurementsData }) {
   const offset = firstDayOfWeek(year, month)
 
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, mt: 3 }}>
+    <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2.5 }, mt: 3 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <IconButton
           size="small"
           onClick={() => setMonthIdx(i => Math.max(0, i - 1))}
@@ -109,7 +109,11 @@ export default function CalendarHeatmap({ measurementsData }) {
         >
           <ChevronLeftIcon />
         </IconButton>
-        <Typography variant="subtitle1" fontWeight={700}>
+        <Typography
+          variant="subtitle1"
+          fontWeight={700}
+          sx={{ letterSpacing: 0.3, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        >
           {MONTH_NAMES[month - 1]} {year}
           {months.length > 1 && (
             <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
@@ -127,13 +131,13 @@ export default function CalendarHeatmap({ measurementsData }) {
       </Box>
 
       {/* Day-of-week headers */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, mb: 0.5 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: { xs: 0.5, sm: 0.75 }, mb: 0.75 }}>
         {DAY_LABELS.map(d => (
           <Typography
             key={d}
             variant="caption"
             align="center"
-            sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.65rem' }}
+            sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.65rem', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
             {d}
           </Typography>
@@ -141,7 +145,7 @@ export default function CalendarHeatmap({ measurementsData }) {
       </Box>
 
       {/* Day cells */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: { xs: 0.5, sm: 0.75 } }}>
         {Array(offset).fill(null).map((_, i) => <Box key={`e${i}`} />)}
 
         {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
@@ -170,18 +174,19 @@ export default function CalendarHeatmap({ measurementsData }) {
                 sx={{
                   position: 'relative',
                   aspectRatio: '1',
-                  borderRadius: 1,
+                  borderRadius: '8px',
                   bgcolor: color ? color.bg : 'action.hover',
                   border: '1px solid',
-                  borderColor: color ? color.bg : 'divider',
+                  borderColor: color ? `${color.bg}cc` : 'divider',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'default',
-                  minHeight: { xs: 32, sm: 40 },
-                  transition: 'opacity 0.15s',
-                  '&:hover': { opacity: 0.85 },
+                  minHeight: { xs: 34, sm: 44 },
+                  transition: 'transform 0.12s, opacity 0.12s',
+                  '&:hover': { opacity: 0.8, transform: 'scale(1.06)' },
+                  boxShadow: color ? `0 2px 6px ${color.bg}55` : 'none',
                 }}
               >
                 <Typography
@@ -191,6 +196,7 @@ export default function CalendarHeatmap({ measurementsData }) {
                     fontWeight: 700,
                     color: color ? color.text : 'text.primary',
                     lineHeight: 1,
+                    fontFamily: "'DM Mono', monospace",
                   }}
                 >
                   {day}
