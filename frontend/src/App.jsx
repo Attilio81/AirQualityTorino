@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
 import Box from '@mui/material/Box'
 import { FilterProvider } from './context/FilterContext'
+import { Analytics } from '@vercel/analytics/react'
 
 import AppBar from './components/AppBar'
 import FilterBar from './components/FilterBar'
@@ -104,6 +105,7 @@ export default function App() {
           </BrowserRouter>
         </FilterProvider>
       </ThemeProvider>
+      <Analytics />
     </ColorModeContext.Provider>
   )
 }
