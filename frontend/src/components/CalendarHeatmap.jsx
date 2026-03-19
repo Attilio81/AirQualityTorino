@@ -6,8 +6,7 @@ import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import WaterDropIcon from '@mui/icons-material/WaterDrop'
-import AirIcon from '@mui/icons-material/Air'
+
 import { useWeather } from '../hooks/useWeather'
 import { getThreshold } from '../lib/thresholds'
 import { useFilters } from '../context/FilterContext'
@@ -145,7 +144,7 @@ export default function CalendarHeatmap({ measurementsData }) {
       </Box>
 
       {/* Day cells */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: { xs: 0.5, sm: 0.75 } }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: { xs: 0.5, sm: 0.75 }, maxWidth: 560, mx: 'auto' }}>
         {Array(offset).fill(null).map((_, i) => <Box key={`e${i}`} />)}
 
         {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
@@ -175,6 +174,7 @@ export default function CalendarHeatmap({ measurementsData }) {
                   position: 'relative',
                   aspectRatio: '1',
                   borderRadius: '8px',
+                  overflow: 'hidden',
                   bgcolor: color ? color.bg : 'action.hover',
                   border: '1px solid',
                   borderColor: color ? `${color.bg}cc` : 'divider',
@@ -184,6 +184,7 @@ export default function CalendarHeatmap({ measurementsData }) {
                   justifyContent: 'center',
                   cursor: 'default',
                   minHeight: { xs: 34, sm: 44 },
+                  maxHeight: 68,
                   transition: 'transform 0.12s, opacity 0.12s',
                   '&:hover': { opacity: 0.8, transform: 'scale(1.06)' },
                   boxShadow: color ? `0 2px 6px ${color.bg}55` : 'none',
@@ -192,7 +193,7 @@ export default function CalendarHeatmap({ measurementsData }) {
                 <Typography
                   variant="caption"
                   sx={{
-                    fontSize: { xs: '0.6rem', sm: '0.7rem' },
+                    fontSize: { xs: '0.7rem', sm: '0.85rem' },
                     fontWeight: 700,
                     color: color ? color.text : 'text.primary',
                     lineHeight: 1,
@@ -202,17 +203,23 @@ export default function CalendarHeatmap({ measurementsData }) {
                   {day}
                 </Typography>
 
+                {/* Bottom bars: rain (blue, left) / wind (gray, right) */}
                 {(hasRain || hasWind) && (
-                  <Box sx={{ display: 'flex', gap: '2px', mt: '2px' }}>
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      display: 'flex',
+                      height: { xs: 3, sm: 4 },
+                    }}
+                  >
                     {hasRain && (
-                      <WaterDropIcon
-                        sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, color: '#60a5fa' }}
-                      />
+                      <Box sx={{ flex: 1, bgcolor: '#3b82f6' }} />
                     )}
                     {hasWind && (
-                      <AirIcon
-                        sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' }, color: color ? color.text : 'text.secondary', opacity: 0.85 }}
-                      />
+                      <Box sx={{ flex: 1, bgcolor: '#94a3b8' }} />
                     )}
                   </Box>
                 )}
@@ -244,13 +251,13 @@ export default function CalendarHeatmap({ measurementsData }) {
           </Box>
         ))}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <WaterDropIcon sx={{ fontSize: '0.7rem', color: '#60a5fa' }} />
+          <Box sx={{ width: 18, height: 4, borderRadius: 0.5, bgcolor: '#3b82f6', flexShrink: 0 }} />
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
             Pioggia (&gt;1 mm)
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <AirIcon sx={{ fontSize: '0.7rem', color: 'text.secondary' }} />
+          <Box sx={{ width: 18, height: 4, borderRadius: 0.5, bgcolor: '#94a3b8', flexShrink: 0 }} />
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
             Vento (&gt;3 m/s)
           </Typography>
